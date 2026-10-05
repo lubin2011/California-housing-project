@@ -203,8 +203,8 @@ pycodestyle --max-line-length=99 src/*.py
 
 | Name | Contribution |
 |---|---|
-| *(Francois Lubin)* | *(data cleaning, analysis, modeling)* |
-| *(Angelica Johnson)* | *(e.g. EDA, technical report)* |
+| Francois Lubin | Data cleaning, analysis, modeling, Visualizations, Regression models, Report: introduction and dataset, Report: methods and results |
+| Angelica Johnson | Exploratory data analysis, Visualizations, Report: introduction and dataset  |
 
 ## References
 
