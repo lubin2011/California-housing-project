@@ -14,8 +14,14 @@ import pandas as pd
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-RAW_DATA_PATH = Path("data/housing.csv")
-CLEAN_DATA_PATH = Path("data/housing_clean.csv")
+# Paths are anchored to the project folder (the parent of src/), so the script
+# works no matter which folder it is launched from.
+ROOT = Path(__file__).resolve().parents[1]
+RAW_DATA_PATH = ROOT / "data" / "housing.csv"
+CLEAN_DATA_PATH = ROOT / "data" / "housing_clean.csv"
+
+TOP_CODE_VALUE = 500001.0  # the source data caps median_house_value here
+IQR_COLUMNS = ["rooms_per_household", "population_per_household"]
 
 
 def load_raw_data(path: Path) -> pd.DataFrame:
@@ -57,13 +63,13 @@ def remove_invalid_records(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def cap_top_coded_target(df: pd.DataFrame, cap_value: float = 500001.0) -> pd.DataFrame:
-    """Flag and remove records at the known top-coded value of the target.
+def cap_top_coded_target(df: pd.DataFrame, cap_value: float = TOP_CODE_VALUE) -> pd.DataFrame:
+    """Remove records at the known top-coded value of the target.
 
     The median_house_value variable is capped at $500,001 in the source
     data, which creates an artificial spike and would bias a regression
-    model. We drop these top-coded rows and document the resulting
-    change in scope.
+    model. We drop these top-coded rows, so the model's scope is block
+    groups with a median value below $500,000.
     """
     n_before = len(df)
     df = df[df["median_house_value"] < cap_value]
@@ -99,8 +105,12 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def remove_outliers_iqr(df: pd.DataFrame, columns: list) -> pd.DataFrame:
-    """Remove rows where any listed column falls outside 1.5*IQR of the
-    column's interquartile range.
+    """Remove rows where any listed column falls outside the Tukey fences
+    (Q1 - 1.5*IQR, Q3 + 1.5*IQR).
+
+    Note: the quartiles are computed on the full dataset before the
+    train/test split. A leakage-free variant (bounds fitted on the training
+    set only) gave essentially the same results in our sensitivity check.
     """
     df = df.copy()
     mask = pd.Series(True, index=df.index)
@@ -117,23 +127,31 @@ def remove_outliers_iqr(df: pd.DataFrame, columns: list) -> pd.DataFrame:
 def clean_pipeline(raw_path: Path = RAW_DATA_PATH) -> pd.DataFrame:
     """Run the full cleaning pipeline and return the cleaned DataFrame."""
     df = load_raw_data(raw_path)
-    report_missing_values(df)
+    report_missing_values(df)  # logged for the record; no return value needed
     df = drop_duplicates(df)
     df = remove_invalid_records(df)
     df = cap_top_coded_target(df)
     df = impute_missing_bedrooms(df)
     df = engineer_features(df)
-    df = remove_outliers_iqr(
-        df, columns=["rooms_per_household", "population_per_household"]
-    )
+    df = remove_outliers_iqr(df, columns=IQR_COLUMNS)
     df = df.reset_index(drop=True)
+    _sanity_check(df)
     logger.info("Final cleaned shape: %d rows, %d columns", *df.shape)
     return df
+
+
+def _sanity_check(df: pd.DataFrame) -> None:
+    """Fail loudly if the cleaned data violates basic expectations."""
+    assert df.isna().sum().sum() == 0, "Cleaned data still has missing values"
+    assert (df["median_house_value"] < TOP_CODE_VALUE).all(), "Top-coded rows remain"
+    assert (df["bedrooms_per_room"] <= 1).all(), "bedrooms_per_room above 1"
+    assert not df.duplicated().any(), "Duplicate rows remain"
 
 
 def main() -> None:
     """Entry point: run the cleaning pipeline and save the output."""
     clean_df = clean_pipeline()
+    CLEAN_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
     clean_df.to_csv(CLEAN_DATA_PATH, index=False)
     logger.info("Saved cleaned data to %s", CLEAN_DATA_PATH)
 

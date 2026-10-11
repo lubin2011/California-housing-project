@@ -26,9 +26,49 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-DATA_PATH = Path("data/housing_clean.csv")
-MODELS_DIR = Path("models")
-REPORTS_DIR = Path("reports")
+# Paths are anchored to the project folder (the parent of src/), so the script
+# works no matter which folder it is launched from.
+def _find_root() -> Path:
+    """Return the project folder (the one containing src/ and data/).
+
+    Normally this is the parent of this file's folder. If the code is pasted
+    into a notebook (where __file__ does not exist), fall back to the
+    CALIFORNIA_HOUSING_ROOT environment variable, a PROJECT_ROOT variable
+    defined in the notebook, or the current folder / its parents.
+    """
+    try:
+        return Path(__file__).resolve().parents[1]
+    except NameError:
+        pass
+    import os
+    env = os.environ.get("CALIFORNIA_HOUSING_ROOT") or str(globals().get("PROJECT_ROOT", "") or "")
+    if env:
+        return Path(env).expanduser().resolve()
+    here = Path.cwd().resolve()
+    for folder in [here, *here.parents]:
+        if (folder / "src" / "data_prep.py").exists():
+            return folder
+    # Last resort: search the home folder for a project with src/data_prep.py
+    skip = {"Library", "anaconda3", "miniconda3", "site-packages", "node_modules",
+            "Applications", "Pictures", "Music", "Movies", "venv", ".venv"}
+    hits = []
+    for root, dirs, files in os.walk(Path.home()):
+        dirs[:] = [d for d in dirs if not d.startswith(".") and d not in skip]
+        if Path(root).name == "src" and "data_prep.py" in files and "model.py" in files:
+            hits.append(Path(root).parent.resolve())
+    if len(hits) == 1:
+        return hits[0]
+    raise FileNotFoundError(
+        "Could not locate the project folder (the one containing src/ and data/). "
+        "Set PROJECT_ROOT = '<your actual project folder path>' before running, "
+        "or run the script from a terminal: python3 src/data_prep.py"
+        + (f" (found several candidates: {hits})" if hits else ""))
+
+
+ROOT = _find_root()
+DATA_PATH = ROOT / "data" / "housing_clean.csv"
+MODELS_DIR = ROOT / "models"
+REPORTS_DIR = ROOT / "reports"
 
 TARGET = "median_house_value"
 NUMERIC_FEATURES = [
@@ -75,7 +115,11 @@ def build_preprocessor() -> ColumnTransformer:
 
 
 def evaluate_model(model: Pipeline, x_test: pd.DataFrame, y_test: pd.Series) -> dict:
-    """Compute standard regression metrics on a held-out test set."""
+    """Compute standard regression metrics (RMSE, MAE, R^2) on a data set.
+
+    Used for both the held-out test set and, to check for overfitting,
+    the training set.
+    """
     y_pred = model.predict(x_test)
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     mae = mean_absolute_error(y_test, y_pred)
@@ -86,19 +130,30 @@ def evaluate_model(model: Pipeline, x_test: pd.DataFrame, y_test: pd.Series) -> 
 def cross_validate_model(
     model: Pipeline, x_train: pd.DataFrame, y_train: pd.Series, cv: int = 5
 ) -> dict:
-    """Run k-fold cross-validation and return mean/SD of RMSE."""
+    """Run k-fold cross-validation and return mean, sample SD and per-fold RMSE.
+
+    For regressors, cross_val_score uses unshuffled KFold, so the folds are
+    identical for every model and can be compared fold by fold.
+    """
     scores = cross_val_score(
         model, x_train, y_train, cv=cv, scoring="neg_root_mean_squared_error"
     )
     rmse_scores = -scores
-    return {"cv_rmse_mean": rmse_scores.mean(), "cv_rmse_std": rmse_scores.std()}
+    return {
+        "cv_rmse_mean": rmse_scores.mean(),
+        "cv_rmse_std": rmse_scores.std(ddof=1),  # sample SD across the folds
+        "cv_rmse_folds": rmse_scores.tolist(),
+    }
 
 
 def residual_normality_test(
     model: Pipeline, x_test: pd.DataFrame, y_test: pd.Series,
     sample_size: int = 5000
 ) -> dict:
-    """Run a Shapiro-Wilk test for normality on a sample of residuals."""
+    """Run a Shapiro-Wilk test for normality on (up to sample_size) residuals.
+
+    With fewer than sample_size test rows, all residuals are used.
+    """
     residuals = y_test.values - model.predict(x_test)
     rng = np.random.default_rng(RANDOM_STATE)
     sample = rng.choice(
@@ -121,14 +176,14 @@ def train_and_select_model() -> None:
     )
     logger.info("Train size: %d, Test size: %d", len(x_train), len(x_test))
 
-    preprocessor = build_preprocessor()
-
+    # Each pipeline gets its own preprocessor so the two models never share
+    # fitted state.
     linear_model = Pipeline(steps=[
-        ("preprocessor", preprocessor),
+        ("preprocessor", build_preprocessor()),
         ("regressor", LinearRegression()),
     ])
     forest_model = Pipeline(steps=[
-        ("preprocessor", preprocessor),
+        ("preprocessor", build_preprocessor()),
         ("regressor", RandomForestRegressor(
             n_estimators=150, max_depth=18, min_samples_leaf=3,
             random_state=RANDOM_STATE, n_jobs=-1,
@@ -145,7 +200,11 @@ def train_and_select_model() -> None:
         cv_metrics = cross_validate_model(model, x_train, y_train)
         model.fit(x_train, y_train)
         test_metrics = evaluate_model(model, x_test, y_test)
-        results[name] = {**cv_metrics, **test_metrics}
+        # Training-set metrics let readers see the train-vs-test gap directly.
+        train_metrics = {
+            f"train_{k}": v for k, v in evaluate_model(model, x_train, y_train).items()
+        }
+        results[name] = {**cv_metrics, **test_metrics, **train_metrics}
         logger.info("%s -> %s", name, results[name])
 
     best_name = min(results, key=lambda k: results[k]["cv_rmse_mean"])
