@@ -1,0 +1,196 @@
+{
+ "train_vs_test": {
+  "linear": {
+   "train_rmse": 57433.13815154557,
+   "test_rmse": 58464.11973923542,
+   "train_r2": 0.6532291965826212,
+   "test_r2": 0.6515927047554535,
+   "train_mae": 42646.604708339415,
+   "test_mae": 43136.71415892047
+  },
+  "forest": {
+   "train_rmse": 24831.74643006597,
+   "test_rmse": 44715.158571241605,
+   "train_r2": 0.9351765769423134,
+   "test_r2": 0.796193533159184,
+   "train_mae": 15994.539378451145,
+   "test_mae": 29899.23738753981
+  }
+ },
+ "paired_folds": {
+  "table": [
+   {
+    "fold": 1,
+    "lr_rmse": 57036.0,
+    "rf_rmse": 44877.0,
+    "diff": 12160.0
+   },
+   {
+    "fold": 2,
+    "lr_rmse": 56203.0,
+    "rf_rmse": 43565.0,
+    "diff": 12638.0
+   },
+   {
+    "fold": 3,
+    "lr_rmse": 56754.0,
+    "rf_rmse": 45123.0,
+    "diff": 11632.0
+   },
+   {
+    "fold": 4,
+    "lr_rmse": 58187.0,
+    "rf_rmse": 45032.0,
+    "diff": 13155.0
+   },
+   {
+    "fold": 5,
+    "lr_rmse": 59208.0,
+    "rf_rmse": 47421.0,
+    "diff": 11786.0
+   }
+  ],
+  "mean_diff": 12274.201549850732,
+  "sd_diff": 626.9459677142067,
+  "ci95": [
+   11495.745312920983,
+   13052.65778678048
+  ],
+  "t": 43.777215977742344,
+  "p": 1.6279813994925536e-06,
+  "rf_better_in_folds": 5
+ },
+ "bootstrap_rf_test": {
+  "rmse": [
+   42752.92847772888,
+   46809.21732547043
+  ],
+  "r2": [
+   0.7784668719185027,
+   0.8117285554015089
+  ],
+  "mae": [
+   28820.516804447503,
+   31018.86124838968
+  ]
+ },
+ "vif": {
+  "households": 92.85565163189489,
+  "total_bedrooms": 65.9309291898919,
+  "population": 26.14733758296487,
+  "total_rooms": 23.898151440428013,
+  "latitude": 10.210663845143738,
+  "longitude": 9.66174873316559,
+  "rooms_per_household": 5.929642391047449,
+  "bedrooms_per_room": 4.222679159521616,
+  "population_per_household": 3.069234611185472,
+  "median_income": 2.5352181019231614,
+  "housing_median_age": 1.3069316780797693
+ },
+ "lr_coef": {
+  "ocean_proximity_ISLAND": 122803.0,
+  "median_income": 60845.0,
+  "latitude": -57227.0,
+  "longitude": -54938.0,
+  "ocean_proximity_INLAND": -51668.0,
+  "ocean_proximity_NEAR BAY": -30891.0,
+  "households": 27740.0,
+  "ocean_proximity_NEAR OCEAN": -22093.0,
+  "population_per_household": -22068.0,
+  "ocean_proximity_<1H OCEAN": -18151.0
+ },
+ "perm_importance_rmse_increase": {
+  "median_income": 42430.0,
+  "latitude": 20576.0,
+  "ocean_proximity": 19897.0,
+  "longitude": 19357.0,
+  "population_per_household": 17601.0,
+  "housing_median_age": 6562.0,
+  "rooms_per_household": 1172.0,
+  "bedrooms_per_room": 716.0,
+  "total_rooms": 294.0,
+  "total_bedrooms": 250.0,
+  "households": 129.0,
+  "population": 111.0
+ },
+ "error_by_value_bin": [
+  {
+   "bin": "(0.0, 100000.0]",
+   "n": "702.0",
+   "rmse": "28077.0",
+   "mae": "17926.0",
+   "bias_mean_pred_minus_actual": "15287.0"
+  },
+  {
+   "bin": "(100000.0, 200000.0]",
+   "n": "1484.0",
+   "rmse": "34988.0",
+   "mae": "23896.0",
+   "bias_mean_pred_minus_actual": "13994.0"
+  },
+  {
+   "bin": "(200000.0, 300000.0]",
+   "n": "967.0",
+   "rmse": "42086.0",
+   "mae": "31622.0",
+   "bias_mean_pred_minus_actual": "-325.0"
+  },
+  {
+   "bin": "(300000.0, 400000.0]",
+   "n": "407.0",
+   "rmse": "56191.0",
+   "mae": "42753.0",
+   "bias_mean_pred_minus_actual": "-25724.0"
+  },
+  {
+   "bin": "(400000.0, 500000.0]",
+   "n": "155.0",
+   "rmse": "115286.0",
+   "mae": "97102.0",
+   "bias_mean_pred_minus_actual": "-96630.0"
+  }
+ ],
+ "error_by_ocean": [
+  {
+   "ocean": "<1H OCEAN",
+   "n": 1622.0,
+   "rmse": 45384.0,
+   "mae": 31858.0,
+   "bias_mean_pred_minus_actual": 3142.0
+  },
+  {
+   "ocean": "INLAND",
+   "n": 1195.0,
+   "rmse": 34322.0,
+   "mae": 21200.0,
+   "bias_mean_pred_minus_actual": 1903.0
+  },
+  {
+   "ocean": "NEAR BAY",
+   "n": 417.0,
+   "rmse": 52813.0,
+   "mae": 37184.0,
+   "bias_mean_pred_minus_actual": 1968.0
+  },
+  {
+   "ocean": "NEAR OCEAN",
+   "n": 481.0,
+   "rmse": 56145.0,
+   "mae": 38592.0,
+   "bias_mean_pred_minus_actual": -5101.0
+  }
+ ],
+ "spatial_cv": {
+  "random_kfold_rmse_mean": 44347.455272733714,
+  "random_sd": 1392.5901601513851,
+  "spatial_groupkfold_rmse_mean": 59977.02483236621,
+  "spatial_sd": 7805.668582688878,
+  "spatial_folds": [
+   70017.30766244889,
+   65016.574557270615,
+   50844.853900631744,
+   54137.39378044961,
+   59868.99426103018
+  ]
+ }
+}

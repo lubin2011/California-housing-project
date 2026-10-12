@@ -1,0 +1,49 @@
+[
+ {
+  "variant": "baseline (team pipeline)",
+  "n_train": 14860,
+  "n_test": 3715,
+  "rf_rmse": 44715.158571241605,
+  "rf_r2": 0.796193533159184,
+  "lr_rmse": 58464.11973923542,
+  "lr_r2": 0.6515927047554535
+ },
+ {
+  "variant": "no IQR outlier removal",
+  "n_train": 15740,
+  "n_test": 3935,
+  "rf_rmse": 46362.574277216285,
+  "rf_r2": 0.7844256993837166,
+  "lr_rmse": 62105.21345644289,
+  "lr_r2": 0.6131718959511507
+ },
+ {
+  "variant": "keep $500,001 capped rows",
+  "n_train": 15544,
+  "n_test": 3886,
+  "rf_rmse": 49500.61446878027,
+  "rf_r2": 0.818705131651558,
+  "rf_rmse_under500k": 44990.17629042765,
+  "lr_rmse": 64901.44633065766,
+  "lr_r2": 0.688345729956644,
+  "lr_rmse_under500k": 57384.9013280574
+ },
+ {
+  "variant": "leakage-free (split first; train-only medians & IQR bounds)",
+  "n_train": 14868,
+  "n_test": 3711,
+  "rf_rmse": 46331.80344097226,
+  "rf_r2": 0.7847781114291612,
+  "lr_rmse": 59520.56743457995,
+  "lr_r2": 0.6448088360753651
+ },
+ {
+  "variant": "leakage-free, test keeps outliers",
+  "n_train": 14868,
+  "n_test": 3935,
+  "rf_rmse": 46388.561862987845,
+  "rf_r2": 0.7841839601865623,
+  "lr_rmse": 62177.37625228818,
+  "lr_r2": 0.6122724283042889
+ }
+]
