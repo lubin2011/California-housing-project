@@ -97,6 +97,8 @@ Three ratio features are added: `rooms_per_household`, `bedrooms_per_room`, and
 │   ├── data_prep.py           # Cleaning and feature engineering pipeline
 │   ├── eda.py                 # Exploratory data analysis and figures
 │   └── model.py               # Model training, CV, evaluation, selection
+│   ├── rigor.py              # Extra validation checks
+│   ├── sensitivity.py        # Cleaning sensitivity analysis
 ├── figures/                   # Saved EDA and diagnostic plots
 ├── models/
 │   └── final_model.joblib     # Serialized final model
@@ -104,6 +106,8 @@ Three ratio features are added: `rooms_per_household`, `bedrooms_per_room`, and
 │   ├── Technical_Report.pdf   # Final technical report
 │   ├── model_metrics.json     # Cross-validation and test metrics
 │   └── feature_importance.csv # Random forest feature importances
+│   ├── rigor_checks.json     # Output of rigor.py
+│   ├── sensitivity.json      # Output of sensitivity.py
 ├── requirements.txt
 └── README.md
 ```
