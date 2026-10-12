@@ -99,6 +99,7 @@ Three ratio features are added: `rooms_per_household`, `bedrooms_per_room`, and
 │   └── model.py               # Model training, CV, evaluation, selection
 │   ├── rigor.py              # Extra validation checks
 │   ├── sensitivity.py        # Cleaning sensitivity analysis
+│   ├── hyperparam_check.py   # 150 vs 300 trees
 ├── figures/                   # Saved EDA and diagnostic plots
 ├── models/
 │   └── final_model.joblib     # Serialized final model
